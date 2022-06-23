@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -11,45 +12,60 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// LoggerParam 日志参数
-type LoggerParam struct {
-	path       string // 日志文件路径
-	maxSize    int    // 日志最大存储量
-	maxBackups int    // 日志最大备份数
-	maxAge     int    // 日志最大存储天数
-	compress   bool   // 是否压缩
-}
+var (
+	param   *loggerParam // 日志参数
+	paramMu sync.RWMutex // 日志参数锁
 
-/*
-NewLogger 创建日志参数对象
-@param path			日志文件路径
-@param maxSize		日志最大存储量
-@param maxBackups	日志最大备份数
-@param maxAge		日志最大存储天数
-@param compress		是否压缩
-@return 日志参数对象
-*/
-func NewLogger(path string, maxSize, maxBackups, maxAge int, compress bool) *LoggerParam {
-	return &LoggerParam{
-		path:       path,
-		maxSize:    maxSize,
-		maxBackups: maxBackups,
-		maxAge:     maxAge,
-		compress:   compress,
+	logger *zap.SugaredLogger // 日志对象
+	mu     sync.Mutex         // 同步锁
+)
+
+// Init 初始化日志参数
+func Init(path string, maxSize, maxBackups, maxAge int, compress bool, logMap map[string]Level) {
+	if param == nil {
+		paramMu.Lock()
+		defer paramMu.Unlock()
+		if param == nil {
+			param = &loggerParam{
+				path:       path,
+				maxSize:    maxSize,
+				maxBackups: maxBackups,
+				maxAge:     maxAge,
+				compress:   compress,
+				logMap:     logMap,
+			}
+		}
+	}
+
+	if logger == nil {
+		mu.Lock()
+		defer mu.Unlock()
+		if logger == nil {
+			logger = param.generateLogger()
+		}
 	}
 }
 
-/*
-New 创建Uber日志对象
-@param logs 日志文件
-@return uber日志对象
-*/
-func (log *LoggerParam) New(logs map[string]Level) *zap.SugaredLogger {
+// checkParam 检查日志对象
+func checkLogger() {
+	if logger == nil {
+		panic("logger is nil; please call Init()")
+	}
+}
+
+// GetLogger 获取日志对象
+func GetLogger() *zap.SugaredLogger {
+	checkLogger()
+	return logger
+}
+
+// 生成日志对象
+func (log *loggerParam) generateLogger() *zap.SugaredLogger {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:       "time",
 		LevelKey:      "level",
 		NameKey:       "log",
-		CallerKey:     "lineNo",
+		CallerKey:     "lineNum",
 		MessageKey:    "msg",
 		StacktraceKey: "stacktrace",
 		LineEnding:    zapcore.DefaultLineEnding,
@@ -68,10 +84,10 @@ func (log *LoggerParam) New(logs map[string]Level) *zap.SugaredLogger {
 
 	cores := make([]zapcore.Core, 0)
 
-	for name := range logs {
+	for name := range log.logMap {
 		// logs[name]
 		writer := GetWrite(fmt.Sprintf("%s/%s", log.path, name), log.maxSize, log.maxBackups, log.maxAge, log.compress)
-		level := zap.LevelEnablerFunc(logs[name])
+		level := zap.LevelEnablerFunc(log.logMap[name])
 		cores = append(cores, zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(writer), level))
 	}
 
