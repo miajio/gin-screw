@@ -1,37 +1,105 @@
-## Welcome to GitHub Pages
+## Welcome to gin-screw
+Secondary packaging based on gin framework
 
-You can use the [editor on GitHub](https://github.com/miajio/gin-screw/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+Make gin easier to use
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Do you need to customize the validator template?
 
-### Markdown
+Do you need a faster way to register routes?
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Do you need to use JWT?
 
-```markdown
-Syntax highlighted code block
+Do you need to use zapLog?
 
-# Header 1
-## Header 2
-### Header 3
+I have all these
 
-- Bulleted
-- List
+Make development faster!!!
 
-1. Numbered
-2. List
+### Install
+1、go mod init
 
-**Bold** and _Italic_ and `Code` text
+2、your project main.go import "github.com/gin-screw/gin-screw/ginx" and "github.com/gin-gonic/gin"
 
-[Link](url) and ![Image](src)
+3、go mod tidy
+
+### Use
+
+#### ginx
+
+```golang
+package main
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/miajio/gin-screw/pkg/ginx"
+)
+
+type testRouter struct{}
+
+func (t *testRouter) Execute(c *gin.Engine) {
+	c.GET("/", func(c *gin.Context) {
+		c.String(200, "Hello World")
+	})
+}
+
+var TestRouter ginx.Router = (*testRouter)(nil)
+
+func main() {
+	ginx.Init(gin.New())
+	ginx.AddRouters(
+		TestRouter,
+	)
+	ginx.Execute()
+	ginx.Engine().Run(":8088")
+}
 ```
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+#### log
 
-### Jekyll Themes
+```golang
+package main
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/miajio/gin-screw/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+import "github.com/miajio/gin-screw/pkg/log"
 
-### Support or Contact
+func main() {
+	lo := map[string]log.Level{
+		"debug.log": log.DebugLevel,
+		"info.log":  log.InfoLevel,
+		"error.log": log.ErrorLevel,
+	}
+	log.Init("./log", 256, 10, 7, false, lo)
+	log.GetLogger().Info("hello")
+}
+```
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+#### jwt
+```golang
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/miajio/gin-screw/pkg/jwt"
+)
+
+func main() {
+	var params = map[string]string{}
+	params["account"] = "miajio"
+	params["userName"] = "admin"
+	params["unitId"] = "1"
+	val, err := jwt.EncryptionToken(params, "test", time.Hour*5)
+	if err != nil {
+		fmt.Printf("encryption token error: %v", err)
+		return
+	}
+	fmt.Println(val)
+
+	v2, err := jwt.DecryptionToken(val, "test")
+	if err != nil {
+		fmt.Printf("eecryption token error: %v", err)
+		return
+	}
+	fmt.Println(v2)
+}
+```
