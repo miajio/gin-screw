@@ -12,7 +12,7 @@ var (
 	mu          sync.Mutex
 )
 
-// Put 存储验证函数
+// Put put validator func
 func Put(key string, value validator.Func) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -22,7 +22,7 @@ func Put(key string, value validator.Func) {
 	validateMap[key] = value
 }
 
-// Execute 执行验证函数
+// Execute execute puts validator
 func Execute() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		for key, val := range validateMap {
