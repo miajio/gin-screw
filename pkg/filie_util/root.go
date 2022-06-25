@@ -14,23 +14,23 @@ import (
 
 // IFile 文件工具接口
 type IFile interface {
-	Read() ([]byte, error)                          // 基于读取当前文件数据并返回一个[]byte
-	GetPath() string                                // 获取当前文件路径
-	GetName() string                                // 获取当前文件名
-	GetPrefix() string                              // 获取当前文件名前缀 例: test.abc 返回 test
-	GetSuffix() string                              // 获取当前文件后缀 例: test.abc 返回 .abc
-	Size() int64                                    // 获取当前文件大小
-	IsDir() bool                                    // 获取当前文件是否是文件夹
-	MkdirAll(name string) (*File, error)            // 基于当前目录创建文件夹
-	Remove() error                                  // 删除当前文件
-	Rename(name string) error                       // 文件重命名
-	Move(path string) error                         // 文件移动
-	Paste(newpath string) error                     // 文件粘贴 将当前文件粘贴到指定目录
-	copyFile(src, dest string) (w int64, err error) // 内置文件复制方法
-	pathExists(path string) (bool, error)           // 判断文件路径是否存在
-	GetChildren() ([]*File, error)                  // 获取当前文件目录下文件数据
-	Clean()                                         // 情况当前结构数据
-	Replace(newFile *File)                          // 替换 将当前文件数据替换
+	Read() ([]byte, error)                          // based on reading current file data and return the file bytes
+	GetPath() string                                // get the file path
+	GetName() string                                // get the file name
+	GetPrefix() string                              // get the file prefix name demo: test.abc return test
+	GetSuffix() string                              // get the file suffix name demo: test.abc return .abc
+	Size() int64                                    // get the file size
+	IsDir() bool                                    // the file is a folder
+	MkdirAll(name string) (*File, error)            // based on the current folder create a new folder
+	Remove() error                                  // remove the current file
+	Rename(name string) error                       // based on the current file rename to a new file
+	Move(path string) error                         // based on the current file move to a new file
+	Paste(newpath string) error                     // based on the current file paste to a new file
+	copyFile(src, dest string) (w int64, err error) // private function to copy file
+	pathExists(path string) (bool, error)           // private function to check file path exists
+	GetChildren() ([]*File, error)                  // based on the current folder get all the children files
+	Clean()                                         // clean the file
+	Replace(newFile *File)                          // based on the current file replace to a new file
 }
 
 type File struct {
@@ -40,7 +40,7 @@ type File struct {
 	clean bool
 }
 
-// New 读取加载File - 基于地址获取文件结构体(整段文件逻辑入口)
+// New read the file path and return a file object
 func New(path string) (*File, error) {
 	path = strings.ReplaceAll(path, "\\", "/")
 	file, err := os.Stat(path)
@@ -55,7 +55,7 @@ func New(path string) (*File, error) {
 	}, nil
 }
 
-// Read 读文件数据
+// Read based on reading current file data and return the file bytes
 func (f *File) Read() ([]byte, error) {
 	if f.clean {
 		return nil, errors.New("it has been reset and cannot be used")
@@ -66,12 +66,12 @@ func (f *File) Read() ([]byte, error) {
 	return os.ReadFile(f.path)
 }
 
-// GetPath 获取文件地址
+// GetPath get the file path
 func (f *File) GetPath() string {
 	return f.path
 }
 
-// GetName 获取文件名称
+// GetName get the file name
 func (f *File) GetName() string {
 	if f.clean {
 		return ""
@@ -79,7 +79,7 @@ func (f *File) GetName() string {
 	return f.file.Name()
 }
 
-// GetPrefix 获取文件名前缀
+// GetPrefix get the file prefix name demo: test.abc return test
 func (f *File) GetPrefix() string {
 	if f.clean {
 		return ""
@@ -92,7 +92,7 @@ func (f *File) GetPrefix() string {
 	return fileName
 }
 
-// GetSuffix 获取文件后缀
+// GetSuffix get the file suffix name demo: test.abc return .abc
 func (f *File) GetSuffix() string {
 	if f.clean {
 		return ""
@@ -100,7 +100,7 @@ func (f *File) GetSuffix() string {
 	return path.Ext(f.file.Name())
 }
 
-// Size 获取文件大小
+// Size get the file size
 func (f *File) Size() int64 {
 	if f.clean {
 		return 0
@@ -108,7 +108,7 @@ func (f *File) Size() int64 {
 	return f.file.Size()
 }
 
-// IsDir 是否是文件夹
+// IsDir the file is a folder
 func (f *File) IsDir() bool {
 	if f.clean {
 		return false
@@ -116,7 +116,8 @@ func (f *File) IsDir() bool {
 	return f.isDir
 }
 
-// MkdirAll 基于当前目录下创建文件夹(如果当前目录是文件则异常)
+// MkdirAll based on the current folder create a new folder
+// if the name path is file then return error
 func (f *File) MkdirAll(name string) (*File, error) {
 	if f.clean {
 		return nil, errors.New("it has been reset and cannot be used")
@@ -133,7 +134,8 @@ func (f *File) MkdirAll(name string) (*File, error) {
 	return nil, fmt.Errorf("%s path not a folder", f.path)
 }
 
-// Remove 删除当前文件 - 删除完当前文件后回将File清空
+// Remove remove the current file
+// remove the current file the file object will be reset
 func (f *File) Remove() error {
 	if f.clean {
 		return errors.New("it has been reset and cannot be used")
@@ -152,7 +154,8 @@ func (f *File) Remove() error {
 	return nil
 }
 
-// Rename 文件重命名(文件重命名后当前file数据将变更为重命名后file数据)
+// Rename based on the current file rename to a new file
+// file rename to a new file
 func (f *File) Rename(name string) error {
 	if f.clean {
 		return errors.New("it has been reset and cannot be used")
@@ -171,7 +174,8 @@ func (f *File) Rename(name string) error {
 	return nil
 }
 
-// Move 文件移动(文件移动后当前file数据将变更为移动后file数据)
+// Move based on the current file move to a new file
+// file move to a new file
 func (f *File) Move(path string) error {
 	if f.clean {
 		return errors.New("it has been reset and cannot be used")
@@ -189,7 +193,7 @@ func (f *File) Move(path string) error {
 	return nil
 }
 
-// Paste 文件粘贴 将当前文件粘贴到指定目录(粘贴到指定目录后当前file不会变更)
+// Paste based on the current file paste to a new file
 func (f *File) Paste(newpath string) error {
 	newpath = strings.ReplaceAll(newpath, "\\", "/")
 	if f.clean {
@@ -232,7 +236,7 @@ func (f *File) Paste(newpath string) error {
 	return ioutil.WriteFile(newpath, r, os.ModePerm)
 }
 
-// copyFile 内置文件复制方法
+// copyFile private function to copy file
 func (f *File) copyFile(src, dest string) (w int64, err error) {
 	srcFile, err := os.Open(src)
 	if err != nil {
@@ -268,7 +272,7 @@ func (f *File) copyFile(src, dest string) (w int64, err error) {
 	return io.Copy(dstFile, srcFile)
 }
 
-// pathExists 文件路径是否存在
+// pathExists private function to check file path exists
 func (*File) pathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -280,7 +284,7 @@ func (*File) pathExists(path string) (bool, error) {
 	return false, err
 }
 
-// GetChilren 获取下级目录文件数据
+// GetChilren based on the current folder get all the children files
 func (f *File) GetChildren() ([]*File, error) {
 	if f.clean {
 		return nil, errors.New("it has been reset and cannot be used")
@@ -307,7 +311,7 @@ func (f *File) GetChildren() ([]*File, error) {
 	return result, nil
 }
 
-// Clean 清空自身File数据
+// Clean clean the file
 func (f *File) Clean() {
 	f.file = nil
 	f.isDir = false
@@ -315,7 +319,7 @@ func (f *File) Clean() {
 	f.clean = true
 }
 
-// Replace 替换 将新的file数据替换成当前file数据
+// Replace based on the current file replace to a new file
 func (f *File) Replace(newFile *File) {
 	f.file = newFile.file
 	f.isDir = newFile.isDir

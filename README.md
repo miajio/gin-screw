@@ -54,6 +54,34 @@ func main() {
 }
 ```
 
+#### validate
+
+Built in library developed based on validator to simplify users' use of custom validators
+
+the validate built in 
+```golang
+// DeSpace delete space in the val
+func DeSpace(val string) string {}
+
+// EnglishLimiter english limiter
+func EnglishLimiter(fl validator.FieldLevel) bool {}
+
+// IntegerLimiter positive integer limiter
+func IntegerLimiter(fl validator.FieldLevel) bool {}
+
+// NumberLimiter positive number limiter
+func NumberLimiter(fl validator.FieldLevel) bool {}
+
+// EqNowDayLimiter equal now day limiter
+func EqNowDayLimiter(fl validator.FieldLevel) bool {}
+
+// GtNowDayLimiter greater than now day limiter
+func GtNowDayLimiter(fl validator.FieldLevel) bool {}
+
+// LtNowDayLimiter less than now day limiter
+func LtNowDayLimiter(fl validator.FieldLevel) bool {}
+```
+
 #### log
 
 ```golang
@@ -103,3 +131,38 @@ func main() {
 	fmt.Println(v2)
 }
 ```
+
+#### fileutil
+Read() ([]byte, error)                          // based on reading current file data and return the file bytes
+
+GetPath() string                                // get the file path
+
+GetName() string                                // get the file name
+
+GetPrefix() string                              // get the file prefix name demo: test.abc return test
+
+GetSuffix() string                              // get the file suffix name demo: test.abc return .abc
+
+Size() int64                                    // get the file size
+
+IsDir() bool                                    // the file is a folder
+
+MkdirAll(name string) (*File, error)            // based on the current folder create a new folder
+
+Remove() error                                  // remove the current file
+
+Rename(name string) error                       // based on the current file rename to a new file
+
+Move(path string) error                         // based on the current file move to a new file
+
+Paste(newpath string) error                     // based on the current file paste to a new file
+
+copyFile(src, dest string) (w int64, err error) // private function to copy file
+
+pathExists(path string) (bool, error)           // private function to check file path exists
+
+GetChildren() ([]*File, error)                  // based on the current folder get all the children files
+
+Clean()                                         // clean the file
+
+Replace(newFile *File)                          // based on the current file replace to a new file
