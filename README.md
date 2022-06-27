@@ -49,7 +49,7 @@ func main() {
 	ginx.AddRouters(
 		TestRouter,
 	)
-	ginx.Execute()
+	ginx.RouterExecute()
 	ginx.Engine().Run(":8088")
 }
 ```

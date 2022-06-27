@@ -32,6 +32,17 @@ func Init(engine *gin.Engine) *ginx {
 	return this
 }
 
+func GetGinx() *ginx {
+	check()
+	return this
+}
+
+// Use use middleware
+func Use(middleware ...gin.HandlerFunc) {
+	check()
+	this.engine.Use(middleware...)
+}
+
 // check ginx init
 func check() {
 	if this == nil {
@@ -45,12 +56,16 @@ func check() {
 // AddRouter add router slice
 func AddRouters(routers ...Router) {
 	check()
+	mu.Lock()
+	defer mu.Unlock()
 	this.routers = append(this.routers, routers...)
 }
 
-// Execute execute router
-func Execute() {
+// RouterExecute execute router
+func RouterExecute() {
 	check()
+	mu.Lock()
+	defer mu.Unlock()
 	for _, router := range this.routers {
 		router.Execute(this.engine)
 	}
@@ -59,5 +74,7 @@ func Execute() {
 // Engine get gin engine
 func Engine() *gin.Engine {
 	check()
+	mu.Lock()
+	defer mu.Unlock()
 	return this.engine
 }
